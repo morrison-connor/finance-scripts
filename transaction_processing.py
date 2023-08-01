@@ -3,41 +3,47 @@
 
 import pandas as pd
 import numpy as np
+import argparse
+import os
+from datetime import datetime
 
-credit_pay_str = "PAYMENT - THANK YOU / PAIEMENT - MERCI"  # long string TODO may as well store all strings to help decode & flexibility
+def transaction_processing(in_file):
+    df = pd.read_csv(in_file)  # load data
 
-#root_dir = "C:/Users/Connor/Documents/MY DOCS/Finances/Transaction CSVs"  # TODO figure out pathlib
-in_file = "C:/Users/Connor/Documents/MY DOCS/Finances/Transaction CSVs/csv37953.csv"  # \ causes escape characters
-df = pd.read_csv(in_file)
+    # edit columns
+    df["Transaction Date"] = pd.to_datetime(df["Transaction Date"]).dt.strftime('%Y-%m-%d')
+    df["Type"] = np.where(df["CAD$"] > 0, "Income", "Purchase")
+    df["Amount"] = abs(df["CAD$"])
+    df = df.drop(columns=["Cheque Number", "CAD$", "USD$"])
 
-# rename existing columns
-df = df.rename(
-    columns={
-        "CAD$": "Amount",
-    }
-)
+    # drop unwanted entries (internal transfers, payments, autodeposit)
+    credit_pay_str = "PAYMENT - THANK YOU / PAIEMENT - MERCI"  # long string
+    df = df.loc[~(df["Description 1"].isin(["Transfer", "Payment", "PAYMENT", credit_pay_str, "E-TRF AUTODEPOSIT"]) |
+                df["Description 1"].str.contains("WWW TRF DDA*"))
+        ]
 
-# add new columns
-df["Type"] = np.where(df["Amount"] > 0, "Income", "Purchase")
+    #df["category"] = asssign_category()  # TODO have a dictionary file with available input
+    #df["subcategory"] = asssign_subcategory()
 
-# filter unwanted data to prevent double counting from transfers
+    # save processed .csv
+    print(df)
+    root_dir = os.path.dirname(in_file)
+    date = datetime.today().strftime('%Y-%m-%d')
+    ext = ".csv"
+    out_file = os.path.join(root_dir, "Transactions " + date + ext)
+    df.to_csv(out_file)
 
-# df = df.loc[~((df["Account Type"] == "Chequing") &
-#               (df["Type"] == "Income"))]  # drop income in chequing act (not really relevant?)
-# df = df.loc[~((df["Account Type"] == "Savings") &
-#               (df["Type"] == "Purchase"))]  # drop purchases from savings act (some transfers to chequing)
+if __name__ == "__main__":
+    try:
+        # set up argparser
+        parser = argparse.ArgumentParser()
+        parser.add_argument("file", type=str, help="File to process.")
 
-# drop internal transfers, payments, autodeposit
-df = df.loc[~(df["Description 1"].isin(["Transfer", "Payment", "PAYMENT", credit_pay_str, "E-TRF AUTODEPOSIT"]) |
-              df["Description 1"].str.contains("WWW TRF DDA*"))
-    ]
+        # get args
+        args = parser.parse_args()
+        in_file = args.file
 
-
-#df["category"] = asssign_category()  # TODO have a dictionary file with available input
-#df["subcategory"] = asssign_subcategory()
-
-
-# save processed .csv
-print(df)
-
-# outfile = "" root_dir + name (processed_date_transactions)
+        # start pass to script
+        transaction_processing(in_file)
+    except KeyboardInterrupt:
+        print('User has exited the program')

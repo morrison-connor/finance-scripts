@@ -1,0 +1,25 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "transaction_processing",
+            "args": ["C:/Users/Connor/Documents/MY DOCS/Finances/Transaction CSVs/csv37953.csv"],
+            "type": "python",
+            "request": "launch",
+            "program": "C:/Users/Connor/Documents/GitHub/finance-scripts/transaction_processing.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}
